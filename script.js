@@ -11,7 +11,7 @@
   // Smooth scroll
   let lenis = null;
   if (window.Lenis) {
-    lenis = new Lenis({ lerp: 0.09 });
+    lenis = new Lenis({ lerp: 0.09 }); window.__lenis = lenis;
     const raf = t => { lenis.raf(t); requestAnimationFrame(raf); };
     requestAnimationFrame(raf);
     document.querySelectorAll('a[href^="#"]').forEach(a => a.addEventListener('click', e => {
@@ -80,4 +80,84 @@
   lb.querySelector('.lb-close').addEventListener('click', close);
   lb.addEventListener('click', e => { if (e.target === lb) close(); });
   addEventListener('keydown', e => e.key === 'Escape' && close());
+})();
+
+(() => {
+  const fine = matchMedia('(pointer:fine)').matches;
+
+  // Tilt cards (reverse tilt, factor 8)
+  document.querySelectorAll('.tilt').forEach(card => {
+    const inner = card.querySelector('.card-in');
+    if (!fine) return;
+    card.addEventListener('mousemove', e => {
+      const r = card.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width - 0.5, py = (e.clientY - r.top) / r.height - 0.5;
+      inner.style.transition = 'transform .12s linear, box-shadow .5s';
+      inner.style.transform = `rotateX(${py * 8}deg) rotateY(${-px * 8}deg)`;
+    });
+    card.addEventListener('mouseleave', () => { inner.style.transition = ''; inner.style.transform = ''; });
+  });
+
+  // Morphing dialog (FLIP from card rect to centered panel)
+  const m = document.querySelector('.morph'), panel = m.querySelector('.morph-panel');
+  const mImg = panel.querySelector('img'), mT = panel.querySelector('h3'), mS = panel.querySelector('small'), mP = panel.querySelector('p'), cta = panel.querySelector('.morph-cta');
+  let from = null;
+  const spring = 'cubic-bezier(.32,1.15,.4,1)';
+  const target = () => {
+    const w = Math.min(560, innerWidth - 32), h = Math.min(innerHeight * 0.9, 680);
+    return { left: (innerWidth - w) / 2, top: (innerHeight - h) / 2, width: w, height: h };
+  };
+  const place = r => Object.assign(panel.style, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px' });
+  const open = card => {
+    from = card;
+    mImg.src = card.querySelector('img').src;
+    mT.textContent = card.querySelector('b').textContent;
+    mS.textContent = card.querySelector('small').textContent;
+    mP.textContent = card.dataset.desc;
+    const v = card.dataset.video, l = card.dataset.link;
+    cta.textContent = v ? 'Play reel ▶' : l ? 'Visit project ↗' : '';
+    cta.href = v || l || '#'; cta.target = l ? '_blank' : '';
+    cta.dataset.video = v || '';
+    const r = card.getBoundingClientRect();
+    panel.style.transition = 'none'; place(r);
+    card.style.visibility = 'hidden';
+    m.classList.add('open'); m.setAttribute('aria-hidden', 'false');
+    window.__lenis && window.__lenis.stop();
+    panel.offsetWidth;
+    panel.style.transition = `all .6s ${spring}`;
+    place(target());
+    setTimeout(() => m.classList.add('ready'), 250);
+    panel.querySelector('.morph-close').focus({ preventScroll: true });
+  };
+  const close = () => {
+    if (!from || !m.classList.contains('open')) return;
+    m.classList.remove('ready'); m.classList.add('closing'); m.classList.remove('open');
+    panel.style.transition = `all .5s ${spring}`;
+    place(from.getBoundingClientRect());
+    const c = from;
+    setTimeout(() => { m.classList.remove('closing'); c.style.visibility = ''; m.setAttribute('aria-hidden', 'true'); c.focus({ preventScroll: true }); }, 500);
+    window.__lenis && window.__lenis.start();
+    from = null;
+  };
+  document.querySelectorAll('.card').forEach(c => c.addEventListener('click', () => open(c)));
+  m.querySelector('.morph-backdrop').addEventListener('click', close);
+  m.querySelector('.morph-close').addEventListener('click', close);
+  addEventListener('keydown', e => e.key === 'Escape' && close());
+  addEventListener('resize', () => m.classList.contains('open') && place(target()));
+  cta.addEventListener('click', e => {
+    if (!cta.dataset.video) return;
+    e.preventDefault(); close();
+    const lb = document.querySelector('.lightbox'), lv = lb.querySelector('video');
+    setTimeout(() => { lv.src = cta.dataset.video; lb.classList.add('open'); lv.play().catch(() => {}); }, 450);
+  });
+
+  // In-view staggered blur grid
+  const items = [...document.querySelectorAll('.m-item')];
+  const io = new IntersectionObserver(es => {
+    if (es.some(e => e.isIntersecting)) {
+      items.forEach((it, i) => setTimeout(() => it.classList.add('in'), i * 90));
+      io.disconnect();
+    }
+  }, { rootMargin: '0px 0px -250px 0px' });
+  if (items.length) io.observe(document.querySelector('.masonry'));
 })();

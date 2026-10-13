@@ -77,3 +77,49 @@ section{position:relative}
   .about-cols{grid-template-columns:1fr 1fr}
   .footer{flex-direction:column;gap:8px}
 }
+
+/* Projects: tilt cards */
+.projects,.gallery{padding:clamp(100px,14vw,200px) var(--pad) 0}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--pad);padding-top:40px;perspective:900px}
+.card{all:unset;cursor:pointer;display:block}
+.card-in{display:flex;flex-direction:column;background:#f6f5f2;border:1px solid var(--line);border-radius:14px;overflow:hidden;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.2,.8,.2,1),box-shadow .5s;will-change:transform}
+.card:hover .card-in{box-shadow:0 30px 60px -30px rgba(0,0,0,.35)}
+.card img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+.card-body{display:flex;flex-direction:column;gap:2px;padding:14px 16px 16px}
+.card-body b{font:600 22px/1.1 "Inter Tight",sans-serif;letter-spacing:-.03em}
+.card-body small{color:var(--mute);font-size:13px}
+.card:focus-visible .card-in{outline:2px solid var(--fg);outline-offset:4px}
+
+/* Morphing dialog */
+.morph{position:fixed;inset:0;z-index:80;pointer-events:none}
+.morph.open{pointer-events:auto}
+.morph-backdrop{position:absolute;inset:0;background:rgba(17,17,17,.45);backdrop-filter:blur(6px);opacity:0;transition:opacity .45s}
+.morph.open .morph-backdrop{opacity:1}
+.morph-panel{position:absolute;background:#f6f5f2;border-radius:14px;overflow:hidden;display:none;flex-direction:column;transform-origin:0 0}
+.morph.open .morph-panel,.morph.closing .morph-panel{display:flex}
+.morph-media{flex:0 1 auto;min-height:120px;overflow:hidden}
+.morph-body{flex:1 0 auto}
+.morph-media img{width:100%;aspect-ratio:16/10;object-fit:cover;display:block}
+.morph-body{padding:24px 28px 30px;overflow:auto;opacity:0;transition:opacity .3s}
+.morph.ready .morph-body{opacity:1;transition-delay:.15s}
+.morph-body small{color:var(--mute)}
+.morph-body h3{font:600 clamp(30px,3.4vw,48px)/1 "Inter Tight",sans-serif;letter-spacing:-.04em;margin:6px 0 14px}
+.morph-body p{color:#3a3935;max-width:52ch}
+.morph-cta{display:inline-flex;margin-top:22px;padding:12px 20px;border-radius:99px;background:var(--fg);color:var(--bg);font-weight:500}
+.morph-cta:empty{display:none}
+.morph-close{position:absolute;top:12px;right:12px;width:36px;height:36px;border-radius:50%;border:0;background:rgba(246,245,242,.85);font-size:22px;cursor:pointer;z-index:2;opacity:0;transition:opacity .3s}
+.morph.ready .morph-close{opacity:1}
+
+/* Masonry in-view */
+.masonry{columns:3;column-gap:var(--pad);padding-top:40px}
+.m-item{break-inside:avoid;margin-bottom:var(--pad);overflow:hidden;border-radius:10px;opacity:0;transform:scale(.85);filter:blur(10px);transition:opacity .9s,transform .9s cubic-bezier(.2,.8,.2,1),filter .9s}
+.m-item.in{opacity:1;transform:none;filter:blur(0)}
+.m-item img{width:100%;display:block;aspect-ratio:4/3;object-fit:cover;transition:transform 1.2s var(--ease)}
+.m-item.tall img{aspect-ratio:3/4}.m-item.wide img{aspect-ratio:16/9}
+.m-item:hover img{transform:scale(1.05)}
+
+/* Cursor preview: spring pop */
+.hover-media{border-radius:10px;clip-path:none;opacity:0;scale:.3;transition:opacity .3s,scale .45s cubic-bezier(.3,1.4,.5,1)}
+.hover-media.on{opacity:1;scale:1}
+
+@media (max-width:800px){.cards{grid-template-columns:1fr}.masonry{columns:2}}
